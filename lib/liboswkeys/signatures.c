@@ -148,17 +148,13 @@ err_t verify_signed_hash(const struct RSA_public_key *k
     DBG(DBG_CRYPT, DBG_log("pad_len calculated: %d hash_len: %d", padlen, (int)hash_len));
 
     /* skip padding */
-    s += padlen;
-
     if(s[0]    != 0x00
        || s[1] != 0x01
        || s[padlen+2] != 0x00) {
 	return "3""SIG padding does not check out";
     }
 
-    /* skip padding */
-    s += 3;
-
+    s += padlen + 3;
     (*psig) = s;
 
     /* return SUCCESS */
