@@ -38,7 +38,7 @@
 #include "ipsecconf/parserlast.h"
 
 #define VALUES_INITIALIZER(t)	{ t, sizeof(t)/ sizeof(t[0]) }
-#undef KEYWORD_PARSE_DEBUG 
+#undef KEYWORD_PARSE_DEBUG
 
 /*
  * values for keyword types  (used for debugging)
