@@ -30,6 +30,7 @@ conn net-net
 	authby=rsasig
 	phase2=esp
 	ikev2=insist
+	clientaddrfamily=ipv6
 # end conn net-net
 
 # end of config
