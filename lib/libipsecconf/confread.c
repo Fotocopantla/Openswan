@@ -466,8 +466,8 @@ static bool validate_end(struct starter_conn *conn_st
 	char *value = end->strings[KSCF_SUBNET];
 	unsigned int client_family = AF_UNSPEC;
 
-	if(conn_st->options_set[KBF_ENDADDRFAMILY]) {
-	    client_family = conn_st->options[KBF_ENDADDRFAMILY];
+	if(conn_st->client_addr_family != 0) {
+	    client_family = conn_st->client_addr_family;
         }
 
         if ( ((strlen(value)>=6) && (strncmp(value,"vhost:",6)==0)) ||
@@ -1201,6 +1201,13 @@ static int load_conn (struct starter_config *cfg
 	}
     }
 
+    if(conn->options_set[KBF_ENDADDRFAMILY]) {
+        conn->end_addr_family = conn->options[KBF_ENDADDRFAMILY];
+    }
+    if(conn->options_set[KBF_CLIENTADDRFAMILY]) {
+        conn->client_addr_family = conn->options[KBF_CLIENTADDRFAMILY];
+    }
+
     err += validate_end(conn, &conn->left,  TRUE,  resolvip, perr);
     err += validate_end(conn, &conn->right, FALSE, resolvip, perr);
     /*
@@ -1213,14 +1220,6 @@ static int load_conn (struct starter_config *cfg
      * Currently, these tests are implicitely done, and wrongly
      * in case of 6in4 and 4in6 tunnels
      */
-
-    if(conn->options_set[KBF_ENDADDRFAMILY]) {
-        conn->end_addr_family = conn->options[KBF_ENDADDRFAMILY];
-    }
-    if(conn->options_set[KBF_CLIENTADDRFAMILY]) {
-        conn->client_addr_family = conn->options[KBF_CLIENTADDRFAMILY];
-    }
-
 
     if(conn->options_set[KBF_AUTO]) {
 	conn->desired_state = conn->options[KBF_AUTO];
