@@ -480,7 +480,6 @@ static bool validate_end(struct starter_conn *conn_st
 	    er = ttosubnet(value, 0, client_family, &(end->subnet));
 	}
 
-
 	if (er) ERR_FOUND("bad subnet %ssubnet=%s [%s] family=%s", leftright, value, er, family2str(family));
     }
 

@@ -765,7 +765,7 @@ int starter_permutate_conns(int (*operation)(struct starter_config *cfg
 		lnet = conn->left.subnet;
 		lc=0;
 	} else {
-		one_subnet_from_string(conn, &leftnets, conn->left.addr_family, &lnet, "left");
+		one_subnet_from_string(conn, &leftnets, conn->client_addr_family, &lnet, "left");
 		lc=1;
 	}
 
@@ -773,7 +773,7 @@ int starter_permutate_conns(int (*operation)(struct starter_config *cfg
 		rnet = conn->right.subnet;
 		rc=0;
 	} else {
-		one_subnet_from_string(conn, &rightnets, conn->right.addr_family, &rnet, "right");
+		one_subnet_from_string(conn, &rightnets, conn->client_addr_family, &rnet, "right");
 		rc=1;
 	}
 
@@ -809,7 +809,7 @@ int starter_permutate_conns(int (*operation)(struct starter_config *cfg
 		 * left.
 		 */
 		rc++;
-		if(!one_subnet_from_string(conn, &rightnets, conn->right.addr_family, &rnet, "right")) {
+		if(!one_subnet_from_string(conn, &rightnets, conn->client_addr_family, &rnet, "right")) {
 			/* reset right, and advance left! */
 			rightnets = "";
 			if(conn->right.strings_set[KSCF_SUBNETS]) {
@@ -821,13 +821,13 @@ int starter_permutate_conns(int (*operation)(struct starter_config *cfg
 				rnet = conn->right.subnet;
 				rc=0;
 			} else {
-				one_subnet_from_string(conn, &rightnets, conn->right.addr_family, &rnet, "right");
+				one_subnet_from_string(conn, &rightnets, conn->client_addr_family, &rnet, "right");
 				rc = 1;
 			}
 
 			/* left */
 			lc++;
-			if(!one_subnet_from_string(conn, &leftnets, conn->left.addr_family, &lnet, "left")) {
+			if(!one_subnet_from_string(conn, &leftnets, conn->client_addr_family, &lnet, "left")) {
 				done = 1;
 			}
 		}
