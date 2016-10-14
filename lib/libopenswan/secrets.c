@@ -1198,7 +1198,7 @@ process_secret(struct secret **psecrets, int verbose,
 static void osw_process_secrets_file(struct secret **psecrets
 				     , int verbose
 				     , const char *file_pat
-				     , prompt_pass_t *pass);
+				     , prompt_pass_t *pass, const char *rootdir);
 
 
 static void
@@ -1220,10 +1220,17 @@ osw_process_secret_records(struct secret **psecrets, int verbose,
 	if (tokeqword("include"))
 	{
 	    /* an include directive */
-            unsigned int fn_len = strlen(flp->filename)+strlen(flp->tok)+1;
+            unsigned int fn_len = strlen(flp->root_dir)+1+strlen(flp->filename)+strlen(flp->tok)+1;
 	    char *fn = alloca(fn_len);
 	    char *p = fn;
 	    char *end_prefix = strrchr(flp->filename, '/');
+
+            /* insert root_dir and / into p, and advance it */
+            strcpy(p, flp->root_dir);
+            if(flp->root_dir[0] != '\0') strcat(p,"/");
+            fn_len =- strlen(p);
+            p = p + strlen(p);
+
 
 	    if (!shift())
 	    {
@@ -1252,7 +1259,7 @@ osw_process_secret_records(struct secret **psecrets, int verbose,
 	    (void) shift();	/* move to Record Boundary, we hope */
 	    if (flushline("ignoring malformed INCLUDE -- expected Record Boundary after filename"))
 	    {
-		osw_process_secrets_file(psecrets, verbose, fn, pass);
+		osw_process_secrets_file(psecrets, verbose, fn, pass, flp->root_dir);
 		flp->tok = NULL;	/* correct, but probably redundant */
 	    }
 	}
@@ -1355,11 +1362,17 @@ globugh(const char *epath, int eerrno)
     return 1;	/* stop glob */
 }
 
+/*
+ * root_dir is prefixed to all filenames: this permits test cases to specify what appear to be
+ *          full pathnames, but to actually operate on a sub-directory.
+ *
+ * file_pat is not meant to be relative to root_dir.
+ */
 static void
 osw_process_secrets_file(struct secret **psecrets
 			 , int verbose
 			 , const char *file_pat
-			 , prompt_pass_t *pass)
+			 , prompt_pass_t *pass, const char *root_dir)
 {
     struct file_lex_position pos;
     char **fnp;
@@ -1367,6 +1380,7 @@ osw_process_secrets_file(struct secret **psecrets
 
     memset(&globbuf, 0, sizeof(glob_t));
     pos.depth = flp == NULL? 0 : flp->depth + 1;
+    pos.root_dir = root_dir ? root_dir : "";
 
     if (pos.depth > 10)
     {
@@ -1472,10 +1486,10 @@ void
 osw_load_preshared_secrets(struct secret **psecrets
 			   , int verbose
 			   , const char *secrets_file
-			   , prompt_pass_t *pass)
+			   , prompt_pass_t *pass, const char *root_dir)
 {
     osw_free_preshared_secrets(psecrets);
-    (void) osw_process_secrets_file(psecrets, verbose, secrets_file, pass);
+    (void) osw_process_secrets_file(psecrets, verbose, secrets_file, pass, root_dir);
 }
 
 
