@@ -1219,19 +1219,6 @@ osw_process_secret_records(struct secret **psecrets, int verbose,
 
 	if (tokeqword("include"))
 	{
-	    /* an include directive */
-            unsigned int fn_len = strlen(flp->root_dir)+1+strlen(flp->filename)+strlen(flp->tok)+1;
-	    char *fn = alloca(fn_len);
-	    char *p = fn;
-	    char *end_prefix = strrchr(flp->filename, '/');
-
-            /* insert root_dir and / into p, and advance it */
-            strcpy(p, flp->root_dir);
-            if(flp->root_dir[0] != '\0') strcat(p,"/");
-            fn_len =- strlen(p);
-            p = p + strlen(p);
-
-
 	    if (!shift())
 	    {
 		loglog(RC_LOG_SERIOUS, "\"%s\" line %d: unexpected end of include directive"
@@ -1239,28 +1226,43 @@ osw_process_secret_records(struct secret **psecrets, int verbose,
 		continue;   /* abandon this record */
 	    }
 
-	    /* if path is relative and including file's pathname has
-	     * a non-empty dirname, prefix this path with that dirname.
-	     */
-	    if (flp->tok[0] != '/' && end_prefix != NULL)
 	    {
-		size_t pl = end_prefix - flp->filename + 1;
+		    /* an include directive */
+		    unsigned int pathname_len = flp->cur - flp->tok;
+		    unsigned int fn_len = strlen(flp->root_dir)+1+strlen(flp->filename)+pathname_len+1;
+		    char *fn = alloca(fn_len);
+		    char *p = fn;
+		    char *end_prefix = strrchr(flp->filename, '/');
 
-		memcpy(fn, flp->filename, pl);
-		p += pl;
-	    }
-	    if (flp->cur - flp->tok >= fn_len)
-	    {
-		loglog(RC_LOG_SERIOUS, "\"%s\" line %d: include pathname too long"
-		    , flp->filename, flp->lino);
-		continue;   /* abandon this record */
-	    }
-	    strcpy(p, flp->tok);
-	    (void) shift();	/* move to Record Boundary, we hope */
-	    if (flushline("ignoring malformed INCLUDE -- expected Record Boundary after filename"))
-	    {
-		osw_process_secrets_file(psecrets, verbose, fn, pass, flp->root_dir);
-		flp->tok = NULL;	/* correct, but probably redundant */
+		    /* insert root_dir and / into p, and advance it */
+		    strcpy(p, flp->root_dir);
+		    /* if(flp->root_dir[0] != '\0') strcat(p,"/"); */
+		    fn_len -= strlen(p);
+		    p       = p + strlen(p);
+
+		    /* if path is relative and including file's pathname has
+		     * a non-empty dirname, prefix this path with that dirname.
+		     */
+		    if (flp->tok[0] != '/' && end_prefix != NULL)
+		    {
+			size_t pl = end_prefix - flp->filename + 1;
+
+			memcpy(fn, flp->filename, pl);
+			p += pl;
+		    }
+		    if (pathname_len >= fn_len)
+		    {
+			loglog(RC_LOG_SERIOUS, "\"%s\" line %d: include pathname too long (%u > %u)"
+			    , flp->filename, flp->lino, pathname_len, fn_len);
+			continue;   /* abandon this record */
+		    }
+		    strcpy(p, flp->tok);
+		    (void) shift();	/* move to Record Boundary, we hope */
+		    if (flushline("ignoring malformed INCLUDE -- expected Record Boundary after filename"))
+		    {
+			osw_process_secrets_file(psecrets, verbose, fn, pass, flp->root_dir);
+			flp->tok = NULL;	/* correct, but probably redundant */
+		    }
 	    }
 	}
 	else
