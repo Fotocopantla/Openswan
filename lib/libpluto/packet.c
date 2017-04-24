@@ -51,7 +51,7 @@
 static field_desc isa_fields[] = {
     { ft_raw, COOKIE_SIZE, "initiator cookie", NULL },
     { ft_raw, COOKIE_SIZE, "responder cookie", NULL },
-    { ft_np,  8/BITS_PER_BYTE, "next payload type", &payload_names },
+    { ft_np_in,8/BITS_PER_BYTE, "next payload type", &payload_names },
     { ft_enum, 8/BITS_PER_BYTE, "ISAKMP version", &version_names },
     { ft_enum, 8/BITS_PER_BYTE, "exchange type", &exchange_names },
     { ft_set, 8/BITS_PER_BYTE, "flags", flag_bit_names },
@@ -1200,6 +1200,7 @@ DBG_print_struct(const char *label, const void *struct_ptr
 	case ft_lv:	/* length/value field of attribute */
 	case ft_enum:	/* value from an enumeration */
 	case ft_np:	/* value from an enumeration */
+	case ft_np_in:	/* value from an enumeration */
 	case ft_loose_enum:	/* value from an enumeration with only some names known */
 	case ft_af_enum:	/* Attribute Format + value from an enumeration */
 	case ft_af_loose_enum:	/* Attribute Format + value from an enumeration */
@@ -1230,9 +1231,7 @@ DBG_print_struct(const char *label, const void *struct_ptr
 		break;
 
 	    case ft_np:	        /* value from an enumeration with next payload*/
-		DBG_log("   %s: %s [np]", fp->name, enum_show(fp->desc, n));
-		break;
-
+	    case ft_np_in:      /* value from an enumeration with next payload*/
 	    case ft_af_loose_enum: /* Attribute Format + value from an enumeration */
 	    case ft_af_enum:	/* Attribute Format + value from an enumeration */
 		if ((n & ISAKMP_ATTR_AF_MASK) == ISAKMP_ATTR_AF_TV)
@@ -1386,6 +1385,7 @@ in_struct(void *struct_ptr, struct_desc *sd
 	    case ft_lv:		/* length/value field of attribute */
 	    case ft_enum:	/* value from an enumeration */
 	    case ft_np:	        /* value from an enumeration */
+	    case ft_np_in:      /* value from an enumeration */
 	    case ft_loose_enum:	/* value from an enumeration with only some names known */
 	    case ft_af_enum:	/* Attribute Format + value from an enumeration */
 	    case ft_af_loose_enum:	/* Attribute Format + value from an enumeration */
@@ -1592,6 +1592,13 @@ out_struct(const void *struct_ptr, struct_desc *sd
 	    DBG_log("out_struct: %d %s"
 		    , (int) (cur - outs->cur), fp->name == NULL? "<end>" : fp->name);
 #endif
+            if(fp->field_type == ft_np) {
+                outs->next_payload_pointer = cur;
+            }
+            else if(fp->field_type == ft_np_in) {
+                obj.next_payload_pointer = cur;
+            }
+
 	    switch (fp->field_type)
 	    {
 	    case ft_mbz:	/* must be zero */
@@ -1601,8 +1608,7 @@ out_struct(const void *struct_ptr, struct_desc *sd
 		    *cur++ = '\0';
 		break;
 	    case ft_np:	        /* value from an enumeration, note location */
-                outs->next_payload_pointer = cur;
-                /* FALLTHROUGH */
+	    case ft_np_in:      /* value from an enumeration, note location */
 	    case ft_nat:	/* natural number (may be 0) */
 	    case ft_len:	/* length of this struct and any following crud */
 	    case ft_lv:		/* length/value field of attribute */
@@ -1611,6 +1617,7 @@ out_struct(const void *struct_ptr, struct_desc *sd
 	    case ft_af_enum:	/* Attribute Format + value from an enumeration */
 	    case ft_af_loose_enum: /* Attribute Format + value from an enumeration */
 	    case ft_set:	/* bits representing set */
+
 	    {
 		u_int32_t n = 0;
 

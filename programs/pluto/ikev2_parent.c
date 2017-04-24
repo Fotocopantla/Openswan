@@ -435,7 +435,7 @@ ikev2_parent_outI1_common(struct msg_digest *md
         chunk_t child_spi;
         memset(&child_spi, 0, sizeof(child_spi));
 
-        ship_v2N(DBGP(IMPAIR_SEND_BOGUS_ISAKMP_FLAG) ?
+        ship_v2N(0, DBGP(IMPAIR_SEND_BOGUS_ISAKMP_FLAG) ?
                  (ISAKMP_PAYLOAD_NONCRITICAL | ISAKMP_PAYLOAD_OPENSWAN_BOGUS) :
                  ISAKMP_PAYLOAD_NONCRITICAL, PROTO_ISAKMP,
                  &child_spi,
@@ -2362,7 +2362,6 @@ send_v2_notification(struct state *p1st, u_int16_t type
                 openswan_log("error initializing hdr for notify message");
                 return;
             }
-
     }
     child_spi.ptr = NULL;
     child_spi.len = 0;
@@ -2386,7 +2385,7 @@ send_v2_notification(struct state *p1st, u_int16_t type
 }
 
 /* add notify payload to the rbody */
-bool ship_v2N(u_int8_t  critical,
+bool ship_v2N(unsigned int np, u_int8_t  critical,
               u_int8_t protoid, chunk_t *spi,
               u_int16_t type, chunk_t *n_data, pb_stream *rbody)
 {
@@ -2395,7 +2394,7 @@ bool ship_v2N(u_int8_t  critical,
     DBG(DBG_CONTROLMORE
         ,DBG_log("Adding a v2N Payload"));
 
-    pbs_set_np(rbody, ISAKMP_NEXT_v2SA);
+    pbs_set_np(rbody, ISAKMP_NEXT_v2N);
 
     n.isan_np =  np;
     n.isan_critical = critical;
