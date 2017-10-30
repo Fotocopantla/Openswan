@@ -1736,6 +1736,8 @@ stf_status ikev2child_inCR1(struct msg_digest *md)
     if(md->chain[ISAKMP_NEXT_v2KE]) {
         return ikev2child_inCR1_pfs(md);
     } else {
+	set_cur_state(st);
+	md->transition_state = st;
         return ikev2child_inCR1_tail(md, st);
     }
 }
