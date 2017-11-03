@@ -418,7 +418,8 @@ struct state
 };
 #define NULL_STATE NULL
 
-#define IKEv2_ORIG_INITIATOR_FLAG(st) (st->st_ikev2_orig_initiator?ISAKMP_FLAGS_I : 0)
+#define IKEv2_IS_ORIG_INITIATOR(st) ((st)->st_ikev2_orig_initiator)
+#define IKEv2_ORIG_INITIATOR_FLAG(st) (IKEv2_IS_ORIG_INITIATOR(st)?ISAKMP_FLAGS_I : 0)
 
 
 extern bool states_use_connection(struct connection *c);

@@ -324,6 +324,19 @@ static const struct state_v2_microcode v2_state_microcode_table[] = {
       .recv_type  = ISAKMP_v2_INFORMATIONAL,
     },
 
+    /* state 14 */
+    { .svm_name   = "rekey-child-SA-initiator",
+      .state      = STATE_PARENT_I3,
+      .next_state = STATE_PARENT_I3,
+      //.next_state = STATE_CHILD_C1_KEYED,
+      .flags =  SMF2_INITIATOR | SMF2_STATENEEDED | SMF2_REPLY,
+      .req_clear_payloads = P(E),
+      .req_enc_payloads = P(SA) | P(TSi) | P(TSr) | P(Ni),
+      .opt_enc_payloads = P(KE),
+      .processor  = ikev2child_inI3,
+      .recv_type  = ISAKMP_v2_CHILD_SA,
+      .timeout_event = EVENT_NULL
+    },
 
     /* last entry */
     { .svm_name   = "invalid-transition",
@@ -548,6 +561,7 @@ process_v2_packet(struct msg_digest **mdp)
     enum isakmp_xchg_types ix;
     unsigned int svm_num;
     lset_t seen = LEMPTY;
+    int ret;
 
     /* Look for an state which matches the various things we know */
     /*
@@ -782,8 +796,8 @@ process_v2_packet(struct msg_digest **mdp)
                                      svm->req_clear_payloads, svm->opt_clear_payloads);
 
 	if(stf != STF_OK) {
-	    complete_v2_state_transition(mdp, stf);
-	    return;
+		complete_v2_state_transition(mdp, stf);
+		return;
 	}
     }
 
@@ -794,7 +808,11 @@ process_v2_packet(struct msg_digest **mdp)
 
     md->message_pbs.roof = md->message_pbs.cur;
 
-    complete_v2_state_transition(mdp, (svm->processor)(md));
+    ret = (svm->processor)(md);
+
+    DBG(DBG_CONTROLMORE, DBG_log("processor '%s' returned %d", svm->svm_name, ret));
+
+    complete_v2_state_transition(mdp, ret);
 }
 
 bool
