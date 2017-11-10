@@ -1189,7 +1189,27 @@ find_state_ikev2_child_to_delete(const u_char *icookie
 		       , u_int8_t protoid
 		       , ipsec_spi_t spi)
 {
-    struct state *st = *state_hash(icookie, rcookie, NULL);
+    struct state *st;
+
+#if 1
+    int i, j;
+    DBG(DBG_CONTROL, DBG_log("----"));
+    for (i=0; i<STATE_TABLE_SIZE; i++) {
+	    for (st=statetable[i], j=0; st; st = st->st_hashchain_next, j++) {
+		    struct ipsec_proto_info *pr = protoid == PROTO_IPSEC_AH
+			    ? &st->st_ah : &st->st_esp;
+		    DBG(DBG_CONTROL,
+			DBG_log("  st[%u,%u]  ikev2=%d  SPI:%08x %08x",
+				i, j,
+				st->st_ikev2,
+				pr->our_spi,
+				pr->attrs.spi));
+	    }
+    }
+    DBG(DBG_CONTROL, DBG_log("----"));
+#endif
+
+    st = *state_hash(icookie, rcookie, NULL);
 
     while (st != (struct state *) NULL)
     {
