@@ -1381,6 +1381,9 @@ static stf_status ikev2child_inCI1_nopfs(struct msg_digest *md)
     return ikev2child_inCI1_tail(md, st, FALSE);
 }
 
+/*
+ * this processes (as responder) the I1 message from an initiator
+ */
 stf_status ikev2child_inCI1(struct msg_digest *md)
 {
     struct state *parentst = md->st;   /* this is parent state! */
